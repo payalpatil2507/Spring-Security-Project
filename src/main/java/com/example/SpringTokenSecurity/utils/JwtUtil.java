@@ -1,30 +1,61 @@
 package com.example.SpringTokenSecurity.utils;
 
+import com.example.SpringTokenSecurity.dto.CustomUser;
 import com.example.SpringTokenSecurity.model.User;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
 import java.security.NoSuchAlgorithmException;
 import java.util.Date;
+import java.util.function.Function;
 
 @Component
 public class JwtUtil {
     private final SecretKey key;
 
     public JwtUtil() throws NoSuchAlgorithmException {
-        // Generate a new key for HMAC-SHA256
-        this.key = KeyGeneratorUtil.generateKey();
+        this.key = KeyGeneratorUtil.generateKey(); // Generate a new key for HMAC-SHA256
+    }
+
+    public boolean isTokenValid(String token, UserDetails userDetails) {
+        final String username = extractUsername(token);
+        return (username.equals(userDetails.getUsername())) && !isTokenExpired(token);
+    }
+
+    public boolean isTokenExpired(String token) {
+        return extractExpiration(token).before(new Date());
+    }
+
+    public Date extractExpiration(String token) {
+        return extractClaim(token, Claims::getExpiration);
+    }
+
+    public String extractUsername(String token) {
+        return extractClaim(token, Claims::getSubject);
+    }
+
+    private Claims extractAllClaims(String token) {
+        return Jwts.parser()
+                .verifyWith(key)
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
+    }
+
+    public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
+        final Claims claims = extractAllClaims(token);
+        return claimsResolver.apply(claims);
     }
 
     public long getExpirationTime() {
-        // Assuming you set a fixed expiration time for your tokens
         return 1 * 60000;// Set expiration to 1 minute (1 * 60,000 ms)
     }
 
-    public String generateToken(User user) {
+    public String generateToken(CustomUser user) {
         Date now = new Date();
         Date expirationDate = new Date(now.getTime() + getExpirationTime());  // Set expiration to 1 minute
 

@@ -4,12 +4,17 @@ import com.example.SpringTokenSecurity.constants.APIConstant;
 import com.example.SpringTokenSecurity.dto.APIResponse;
 import com.example.SpringTokenSecurity.dto.AuthRequest;
 import com.example.SpringTokenSecurity.dto.AuthResponse;
+import com.example.SpringTokenSecurity.dto.CustomUser;
 import com.example.SpringTokenSecurity.model.User;
 import com.example.SpringTokenSecurity.repository.UserRepository;
 import com.example.SpringTokenSecurity.utils.JwtUtil;
 import com.example.SpringTokenSecurity.utils.ResponseUtil;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -18,12 +23,12 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 
 @RestController
 public class AuthController {
-
+    @Autowired
+    private AuthenticationManager authenticationManager;
     private final JwtUtil jwtUtil;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
@@ -52,19 +57,15 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<?> loginUser(@RequestBody AuthRequest authRequest) {
-        User user = userRepository.findByUsername(authRequest.getUsername()).get();
-        if (Objects.isNull(user)) {
-            return ResponseUtil.createErrorResponse(APIConstant.USER_NOT_FOUND, HttpStatus.NOT_FOUND);
-        }
-        if (passwordEncoder.matches(authRequest.getPassword(), user.getPassword())) {
+        Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(authRequest.getUsername(), authRequest.getPassword()));
+        if (authentication.isAuthenticated()) {
+            CustomUser user = (CustomUser) authentication.getPrincipal();
             String token = jwtUtil.generateToken(user);
-            // Extract user details from token
-            User userDetails = jwtUtil.extractUserDetails(token);
-
             Map<String, String> response = new HashMap<>();
             response.put("token", token);
 
-            AuthResponse authResponse = new AuthResponse(token, jwtUtil.getExpirationTime(), userDetails);
+            AuthResponse authResponse = new AuthResponse(token, jwtUtil.getExpirationTime(), user);
             return ResponseUtil.createSuccessResponse(authResponse, HttpStatus.OK); // Success
         } else {
             return ResponseUtil.createErrorResponse(APIConstant.INVALID_CREDENTIALS, HttpStatus.UNAUTHORIZED); // Error

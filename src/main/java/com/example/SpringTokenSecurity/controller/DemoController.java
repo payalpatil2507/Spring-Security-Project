@@ -1,43 +1,38 @@
 package com.example.SpringTokenSecurity.controller;
 
-import com.example.SpringTokenSecurity.constants.APIConstant;
 import com.example.SpringTokenSecurity.dto.APIResponse;
 import com.example.SpringTokenSecurity.model.User;
+import com.example.SpringTokenSecurity.service.UserDetailsServiceImpl;
 import com.example.SpringTokenSecurity.utils.JwtUtil;
 import com.example.SpringTokenSecurity.utils.ResponseUtil;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api")
 public class DemoController {
     @Autowired
-    private JwtUtil jwtUtil;
+    private UserDetailsServiceImpl userDetailsService;
 
-    @GetMapping("/profile")
-    public ResponseEntity<APIResponse<User>> getProfile(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader) {
-        // Check if the Authorization header is present and has the correct format
-        if (authorizationHeader != null && authorizationHeader.startsWith(APIConstant.BEARER_PREFIX)) {
-            String token = authorizationHeader.substring(7); // Extract token
+    @GetMapping("/me")
+    public ResponseEntity<APIResponse<User>> authenticatedUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        User currentUser = (User) authentication.getPrincipal();
+        return ResponseUtil.createSuccessResponse(currentUser, HttpStatus.OK);
+    }
 
-            // Extract user details from token
-            User userDetails = jwtUtil.extractUserDetails(token);
-
-            if (userDetails != null) {
-                return ResponseUtil.createSuccessResponse(userDetails, HttpStatus.OK);
-            } else {
-                return ResponseUtil.createErrorResponse(APIConstant.INVALID_TOKEN, HttpStatus.UNAUTHORIZED);
-            }
-        } else {
-            // Invalid token format: 400 Bad Request
-            return ResponseUtil.createErrorResponse(APIConstant.INVALID_TOKEN_FORMAT, HttpStatus.BAD_REQUEST);
-        }
+    @GetMapping("/allUser")
+    public ResponseEntity<APIResponse<List<User>>> allUsers() {
+        List<User> users = userDetailsService.allUsers();
+        return ResponseUtil.createSuccessResponse(users, HttpStatus.OK);
     }
 
 

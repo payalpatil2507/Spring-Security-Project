@@ -15,5 +15,5 @@ import lombok.Setter;
 public class AuthResponse {
     private String token;
     private long expirationTime; // in milliseconds
-    private User user;
+    private CustomUser user;
 }

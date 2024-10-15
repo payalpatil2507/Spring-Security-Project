@@ -43,7 +43,10 @@
             <artifactId>mysql-connector-java</artifactId>
             <version>8.0.25</version> <!-- Replace with the latest version if needed -->
         </dependency>
-
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security</artifactId>
+        </dependency>
 
         <!-- JJWT dependencies -->
         <dependency>
