@@ -1,5 +1,6 @@
 package com.example.SpringTokenSecurity.service;
 
+import com.example.SpringTokenSecurity.constants.APIConstant;
 import com.example.SpringTokenSecurity.dto.CustomUser;
 import com.example.SpringTokenSecurity.model.User;
 import com.example.SpringTokenSecurity.repository.UserRepository;
@@ -19,9 +20,8 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        // Load user from the database
         User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found with username: " + username));
+                .orElseThrow(() -> new UsernameNotFoundException(APIConstant.USER_NOT_FOUND + username));
 
         return new CustomUser(user.getUsername(), user.getPassword(), user.getFirstName(), user.getLastName(), user.getRole());
     }

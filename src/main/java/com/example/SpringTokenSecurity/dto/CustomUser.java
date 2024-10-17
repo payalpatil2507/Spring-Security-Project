@@ -29,7 +29,6 @@ public class CustomUser implements UserDetails {
         this.role = role;
     }
 
-
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return null;

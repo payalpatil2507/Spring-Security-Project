@@ -1,9 +1,9 @@
 package com.example.SpringTokenSecurity.controller;
 
 import com.example.SpringTokenSecurity.dto.APIResponse;
+import com.example.SpringTokenSecurity.dto.CustomUser;
 import com.example.SpringTokenSecurity.model.User;
 import com.example.SpringTokenSecurity.service.UserDetailsServiceImpl;
-import com.example.SpringTokenSecurity.utils.JwtUtil;
 import com.example.SpringTokenSecurity.utils.ResponseUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -23,9 +23,9 @@ public class DemoController {
     private UserDetailsServiceImpl userDetailsService;
 
     @GetMapping("/me")
-    public ResponseEntity<APIResponse<User>> authenticatedUser() {
+    public ResponseEntity<APIResponse<CustomUser>> authenticatedUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        User currentUser = (User) authentication.getPrincipal();
+        CustomUser currentUser = (CustomUser) authentication.getPrincipal();
         return ResponseUtil.createSuccessResponse(currentUser, HttpStatus.OK);
     }
 
@@ -34,7 +34,5 @@ public class DemoController {
         List<User> users = userDetailsService.allUsers();
         return ResponseUtil.createSuccessResponse(users, HttpStatus.OK);
     }
-
-
 }
 
