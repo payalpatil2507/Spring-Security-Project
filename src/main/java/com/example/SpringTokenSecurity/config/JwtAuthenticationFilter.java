@@ -3,6 +3,7 @@ package com.example.SpringTokenSecurity.config;
 import com.example.SpringTokenSecurity.constants.APIConstant;
 import com.example.SpringTokenSecurity.dto.APIResponse;
 import com.example.SpringTokenSecurity.dto.CustomUser;
+import com.example.SpringTokenSecurity.dto.LoginRequest;
 import com.example.SpringTokenSecurity.model.User;
 import com.example.SpringTokenSecurity.utils.JwtTokenUtil;
 import com.example.SpringTokenSecurity.utils.ResponseUtil;
@@ -38,8 +39,7 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
     @Override
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
         try {
-            // Parse login request body to extract username and password
-            User loginRequest = new ObjectMapper().readValue(request.getInputStream(), User.class);
+            LoginRequest loginRequest = new ObjectMapper().readValue(request.getInputStream(), LoginRequest.class);
             UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
                     loginRequest.getUsername(), loginRequest.getPassword());
             return authenticationManager.authenticate(authenticationToken);
@@ -64,7 +64,6 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
         new ObjectMapper().writeValue(response.getOutputStream(), apiResponse.getBody());
     }
 
-    //
     @Override
     protected void unsuccessfulAuthentication(HttpServletRequest request, HttpServletResponse response, AuthenticationException failed) throws IOException {
         ResponseEntity<APIResponse<Object>> apiResponse = responseUtil.createErrorResponse(APIConstant.INVALID_CREDENTIALS, HttpStatus.UNAUTHORIZED);
