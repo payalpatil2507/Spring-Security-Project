@@ -2,7 +2,7 @@ package com.example.SpringTokenSecurity.config;
 
 import com.example.SpringTokenSecurity.constants.APIConstant;
 import com.example.SpringTokenSecurity.service.UserDetailsServiceImpl;
-import com.example.SpringTokenSecurity.utils.JwtUtil;
+import com.example.SpringTokenSecurity.utils.JwtTokenUtil;
 import io.micrometer.common.lang.NonNull;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -23,10 +23,10 @@ import java.io.IOException;
 @Component
 public class JwtAuthFilter extends OncePerRequestFilter {
     private final HandlerExceptionResolver handlerExceptionResolver;
-    private final JwtUtil jwtUtil;
+    private final JwtTokenUtil jwtUtil;
     private final UserDetailsServiceImpl userDetailsService;
 
-    public JwtAuthFilter(HandlerExceptionResolver handlerExceptionResolver, JwtUtil jwtService, UserDetailsServiceImpl userDetailsService) {
+    public JwtAuthFilter(HandlerExceptionResolver handlerExceptionResolver, JwtTokenUtil jwtService, UserDetailsServiceImpl userDetailsService) {
         this.handlerExceptionResolver = handlerExceptionResolver;
         this.jwtUtil = jwtService;
         this.userDetailsService = userDetailsService;

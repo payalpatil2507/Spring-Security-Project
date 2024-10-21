@@ -14,10 +14,10 @@ import java.util.Date;
 import java.util.function.Function;
 
 @Component
-public class JwtUtil {
+public class JwtTokenUtil {
     private final SecretKey key;
 
-    public JwtUtil() throws NoSuchAlgorithmException {
+    public JwtTokenUtil() throws NoSuchAlgorithmException {
         this.key = KeyGeneratorUtil.generateKey(); // Generate a new key for HMAC-SHA256
     }
 

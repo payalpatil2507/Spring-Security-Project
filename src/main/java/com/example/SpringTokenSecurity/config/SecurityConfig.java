@@ -1,5 +1,6 @@
 package com.example.SpringTokenSecurity.config;
 
+import com.example.SpringTokenSecurity.utils.JwtTokenUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -20,8 +21,14 @@ public class SecurityConfig {
     @Autowired
     private JwtAuthFilter jwtAuthFilter;
 
+    @Autowired
+    private JwtTokenUtil jwtTokenUtil;
+
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, AuthenticationConfiguration authConfig) throws Exception {
+        JwtAuthenticationFilter jwtAuthenticationFilter = new JwtAuthenticationFilter(authConfig.getAuthenticationManager(), jwtTokenUtil);
+        jwtAuthenticationFilter.setFilterProcessesUrl("/login"); // Define custom login endpoint
+
         http
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
@@ -29,9 +36,10 @@ public class SecurityConfig {
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(sess -> sess
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS) // No sessions
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS) // Stateless session management
                 )
-                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class); // Add JWT filter
+                .addFilter(jwtAuthenticationFilter) // Add JWT authentication filter
+                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class); // Validate JWT for all requests
 
         return http.build();
     }
