@@ -9,5 +9,6 @@ public class SpringTokenSecurity {
     public static void main(String[] args) {
         SpringApplication.run(SpringTokenSecurity.class, args);
     }
-
 }
+
+

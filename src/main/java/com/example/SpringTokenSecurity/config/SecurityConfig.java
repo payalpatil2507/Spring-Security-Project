@@ -1,6 +1,9 @@
 package com.example.SpringTokenSecurity.config;
 
+import com.example.SpringTokenSecurity.handler.JwtAuthenticationFailureHandler;
+import com.example.SpringTokenSecurity.handler.JwtAuthenticationSuccessHandler;
 import com.example.SpringTokenSecurity.utils.JwtTokenUtil;
+import com.example.SpringTokenSecurity.utils.ResponseUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -24,10 +27,19 @@ public class SecurityConfig {
     @Autowired
     private JwtTokenUtil jwtTokenUtil;
 
+    @Autowired
+    private ResponseUtil responseUtil;
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http, AuthenticationConfiguration authConfig) throws Exception {
+        JwtAuthenticationSuccessHandler authSuccessHandler = new JwtAuthenticationSuccessHandler(jwtTokenUtil, responseUtil);
+        JwtAuthenticationFailureHandler authenticationFailureHandler =new JwtAuthenticationFailureHandler();
+
+        // Create the authentication filter
         JwtAuthenticationFilter jwtAuthenticationFilter = new JwtAuthenticationFilter(authConfig.getAuthenticationManager(), jwtTokenUtil);
         jwtAuthenticationFilter.setFilterProcessesUrl("/login"); // Define custom login endpoint
+        jwtAuthenticationFilter.setAuthenticationSuccessHandler(authSuccessHandler); // Set the success handler
+        jwtAuthenticationFilter.setAuthenticationFailureHandler(authenticationFailureHandler);
 
         http
                 .csrf(csrf -> csrf.disable())
@@ -38,8 +50,9 @@ public class SecurityConfig {
                 .sessionManagement(sess -> sess
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS) // Stateless session management
                 )
-                .addFilter(jwtAuthenticationFilter) // Add JWT authentication filter
+                .addFilter(jwtAuthenticationFilter)// Add JWT authentication filter
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class); // Validate JWT for all requests
+
 
         return http.build();
     }

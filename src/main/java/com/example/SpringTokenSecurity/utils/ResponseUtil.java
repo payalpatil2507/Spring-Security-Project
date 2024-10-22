@@ -3,7 +3,9 @@ package com.example.SpringTokenSecurity.utils;
 import com.example.SpringTokenSecurity.dto.APIResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Component;
 
+@Component
 public class ResponseUtil {
 
     public static <T> ResponseEntity<APIResponse<T>> createSuccessResponse(T data, HttpStatus status) {
