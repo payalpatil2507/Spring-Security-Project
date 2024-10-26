@@ -12,6 +12,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
+import org.springframework.security.web.authentication.rememberme.TokenBasedRememberMeServices;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -21,6 +22,8 @@ public class JwtAuthenticationSuccessHandler implements AuthenticationSuccessHan
 
     private final JwtTokenUtil jwtTokenUtil;
     private final ResponseUtil responseUtil;
+    @Autowired
+    private TokenBasedRememberMeServices tokenBasedRememberMeServices;
 
     @Autowired
     public JwtAuthenticationSuccessHandler(JwtTokenUtil jwtTokenUtil, ResponseUtil responseUtil) {
@@ -32,10 +35,15 @@ public class JwtAuthenticationSuccessHandler implements AuthenticationSuccessHan
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException {
         CustomUser userDetails = (CustomUser) authentication.getPrincipal(); // Get user details
         String token = jwtTokenUtil.generateToken(userDetails); // Generate JWT token
+        // Handle remember-me functionality
+        if (request.getParameter("remember-me") != null) {
+            tokenBasedRememberMeServices.loginSuccess(request, response, authentication); // Set remember-me cookie
+        }
 
         // Create a response object
         Map<String, Object> responseData = new HashMap<>();
         responseData.put("token", token);
+        userDetails.setPassword(null);
         responseData.put("user", userDetails); // Add user details to the response
 
         // Create the API response

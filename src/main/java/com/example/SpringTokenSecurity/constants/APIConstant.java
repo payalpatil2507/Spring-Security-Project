@@ -14,8 +14,10 @@ public class APIConstant {
     public static final String USER_REGISTERED_SUCCESSFULLY = "User registered successfully!";
     public static final String INVALID_TOKEN = "Invalid token";
     public static final String INVALID_TOKEN_FORMAT = "Invalid token format";
-
+    public static final String LOGOUT_SUCCESS_MASSAGE = "Logged out successfully!";
     // Other Constants
     public static final String BEARER_PREFIX = "Bearer ";
+
+
 
 }

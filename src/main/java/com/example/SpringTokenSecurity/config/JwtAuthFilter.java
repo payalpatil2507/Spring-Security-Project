@@ -32,6 +32,11 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         this.userDetailsService = userDetailsService;
     }
 
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
+        // Exclude logout and login requests from the filter
+        return request.getRequestURI().equals("/logout");
+    }
 
     @Override
     protected void doFilterInternal(
