@@ -6,13 +6,16 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
+import java.util.Collections;
 
 @Getter
 @Setter
 @NoArgsConstructor
+@AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class CustomUser implements UserDetails {
     private String username;
@@ -20,6 +23,7 @@ public class CustomUser implements UserDetails {
     private String firstName;
     private String lastName;
     private String role;
+    private String rememberMe;
 
     public CustomUser(String username, String password, String firstName, String lastName, String role) {
         this.username = username;
@@ -29,10 +33,6 @@ public class CustomUser implements UserDetails {
         this.role = role;
     }
 
-    @Override
-    public Collection<? extends GrantedAuthority> getAuthorities() {
-        return null;
-    }
 
     @Override
     public boolean isAccountNonExpired() {
@@ -53,4 +53,10 @@ public class CustomUser implements UserDetails {
     public boolean isEnabled() {
         return UserDetails.super.isEnabled();
     }
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        // Return a SimpleGrantedAuthority object for the role
+        return Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + role));
+    }
+
 }

@@ -1,5 +1,6 @@
 package com.example.SpringTokenSecurity.config;
 
+import com.example.SpringTokenSecurity.handler.CustomAccessDeniedHandler;
 import com.example.SpringTokenSecurity.handler.CustomLogoutSuccessHandler;
 import com.example.SpringTokenSecurity.handler.JwtAuthenticationFailureHandler;
 import com.example.SpringTokenSecurity.handler.JwtAuthenticationSuccessHandler;
@@ -32,8 +33,12 @@ public class SecurityConfig {
 
     @Autowired
     private ResponseUtil responseUtil;
+
     @Autowired
     private UserDetailsService userDetailsService;
+
+    @Autowired
+    private CustomAccessDeniedHandler customAccessDeniedHandler;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http, AuthenticationConfiguration authConfig) throws Exception {
@@ -48,13 +53,21 @@ public class SecurityConfig {
 
         http
                 .csrf(csrf -> csrf.disable())
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/**", "/login", "/register", "/logout").permitAll()
-                        .anyRequest().authenticated()
+                .authorizeHttpRequests(auth -> {
+                            try {
+                                auth
+                                        .requestMatchers("/login", "/register", "/logout").permitAll()       // Publicly accessible paths
+                                        .requestMatchers("/api/**").hasRole("Normal")
+                                        .anyRequest().authenticated();
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                        }
                 )
                 .sessionManagement(sess -> sess
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS) // Stateless session management
                 )
+
                 .logout(logout -> logout
                         .logoutUrl("/logout")
                         .logoutSuccessHandler(new CustomLogoutSuccessHandler()) // Set custom handler
@@ -64,11 +77,12 @@ public class SecurityConfig {
                 .rememberMe(rememberMe -> rememberMe
                         .rememberMeServices(tokenBasedRememberMeServices()) // Set the remember-me services
                         .key("uniqueAndSecret") // Set a unique key for remember-me
-                        .tokenValiditySeconds(86400) // Set the token validity period (1 day)
-                )
+                        .tokenValiditySeconds(86400)// Set the token validity period (1 day)
+                ).exceptionHandling(exception -> exception
+                        .accessDeniedHandler(customAccessDeniedHandler)) // Set custom AccessDeniedHandler
                 .addFilter(jwtAuthenticationFilter)// Add JWT authentication filter
-                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class); // Validate JWT for all requests
-              return http.build();
+                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);// Validate JWT for all requests
+        return http.build();
     }
 
     @Bean

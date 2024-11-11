@@ -5,6 +5,7 @@ import com.example.SpringTokenSecurity.dto.CustomUser;
 import com.example.SpringTokenSecurity.utils.JwtTokenUtil;
 import com.example.SpringTokenSecurity.utils.ResponseUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,8 +40,10 @@ public class JwtAuthenticationSuccessHandler implements AuthenticationSuccessHan
         if (request.getParameter("remember-me") != null) {
             tokenBasedRememberMeServices.loginSuccess(request, response, authentication); // Set remember-me cookie
         }
+        if (Boolean.parseBoolean(request.getParameter("remember-me"))) {
+            response.addCookie(createRememberMeCookie(token));
+        }
 
-        // Create a response object
         Map<String, Object> responseData = new HashMap<>();
         responseData.put("token", token);
         userDetails.setPassword(null);
@@ -53,6 +56,14 @@ public class JwtAuthenticationSuccessHandler implements AuthenticationSuccessHan
 
         // Write the response to the output stream
         new ObjectMapper().writeValue(response.getOutputStream(), apiResponse.getBody());
+    }
+
+    private Cookie createRememberMeCookie(String token) {
+        Cookie cookie = new Cookie("remember-me", token);
+        cookie.setHttpOnly(true);
+        cookie.setMaxAge(86400); // 1 day
+        cookie.setPath("/"); // Set cookie path
+        return cookie;
     }
 }
 

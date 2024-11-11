@@ -34,5 +34,25 @@ public class DemoController {
         List<User> users = userDetailsService.allUsers();
         return ResponseUtil.createSuccessResponse(users, HttpStatus.OK);
     }
+
+    @GetMapping("/home")
+    public ResponseEntity<APIResponse<String>> home() {
+        return ResponseUtil.createSuccessResponse("WELCOME home", HttpStatus.OK);
+    }
+
+    @GetMapping("/shop")
+    public ResponseEntity<APIResponse<String>> shop() {
+        return ResponseUtil.createSuccessResponse("WELCOME shop", HttpStatus.OK);
+    }
+
+    @GetMapping("/product")
+    public ResponseEntity<APIResponse<String>> product() {
+        return ResponseUtil.createSuccessResponse("WELCOME product", HttpStatus.OK);
+    }
+
+    @GetMapping("/order")
+    public ResponseEntity<APIResponse<String>> order() {
+        return ResponseUtil.createSuccessResponse("WELCOME order", HttpStatus.OK);
+    }
 }
 
