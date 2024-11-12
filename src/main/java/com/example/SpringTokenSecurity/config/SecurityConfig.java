@@ -4,6 +4,7 @@ import com.example.SpringTokenSecurity.handler.CustomAccessDeniedHandler;
 import com.example.SpringTokenSecurity.handler.CustomLogoutSuccessHandler;
 import com.example.SpringTokenSecurity.handler.JwtAuthenticationFailureHandler;
 import com.example.SpringTokenSecurity.handler.JwtAuthenticationSuccessHandler;
+import com.example.SpringTokenSecurity.service.UserDetailsServiceImpl;
 import com.example.SpringTokenSecurity.utils.JwtTokenUtil;
 import com.example.SpringTokenSecurity.utils.ResponseUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,12 +15,12 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.rememberme.TokenBasedRememberMeServices;
+import org.springframework.security.web.authentication.switchuser.SwitchUserFilter;
 
 @Configuration
 @EnableWebSecurity
@@ -35,7 +36,7 @@ public class SecurityConfig {
     private ResponseUtil responseUtil;
 
     @Autowired
-    private UserDetailsService userDetailsService;
+    private UserDetailsServiceImpl userDetailsService;
 
     @Autowired
     private CustomAccessDeniedHandler customAccessDeniedHandler;
@@ -57,7 +58,8 @@ public class SecurityConfig {
                             try {
                                 auth
                                         .requestMatchers("/login", "/register", "/logout").permitAll()       // Publicly accessible paths
-                                        .requestMatchers("/api/**").hasRole("Normal")
+                                        .requestMatchers("/api/**").permitAll()
+                                        .requestMatchers("/api/switchUser", "/api/exitSwitchUser").hasRole("ADMIN") // Restrict access to switching endpoints
                                         .anyRequest().authenticated();
                             } catch (Exception e) {
                                 e.printStackTrace();
@@ -65,9 +67,8 @@ public class SecurityConfig {
                         }
                 )
                 .sessionManagement(sess -> sess
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS) // Stateless session management
+                        .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED) // Stateless session management
                 )
-
                 .logout(logout -> logout
                         .logoutUrl("/logout")
                         .logoutSuccessHandler(new CustomLogoutSuccessHandler()) // Set custom handler
@@ -78,13 +79,22 @@ public class SecurityConfig {
                         .rememberMeServices(tokenBasedRememberMeServices()) // Set the remember-me services
                         .key("uniqueAndSecret") // Set a unique key for remember-me
                         .tokenValiditySeconds(86400)// Set the token validity period (1 day)
-                ).exceptionHandling(exception -> exception
-                        .accessDeniedHandler(customAccessDeniedHandler)) // Set custom AccessDeniedHandler
+                )
                 .addFilter(jwtAuthenticationFilter)// Add JWT authentication filter
-                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);// Validate JWT for all requests
+                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)// Validate JWT for all requests
+                .addFilterAfter(switchUserFilter(), SwitchUserFilter.class); // Add SwitchUserFilter
+
         return http.build();
     }
-
+    @Bean
+    public SwitchUserFilter switchUserFilter() {
+        SwitchUserFilter switchUserFilter = new SwitchUserFilter();
+        switchUserFilter.setUserDetailsService(userDetailsService);
+        switchUserFilter.setSwitchUserUrl("/api/switchUser");
+        switchUserFilter.setExitUserUrl("/api/exitSwitchUser");
+        switchUserFilter.setTargetUrl("/api/current-user");
+        return switchUserFilter;
+    }
     @Bean
     public TokenBasedRememberMeServices tokenBasedRememberMeServices() {
         TokenBasedRememberMeServices rememberMeServices = new TokenBasedRememberMeServices("uniqueAndSecret", userDetailsService);

@@ -52,12 +52,12 @@ public class JwtTokenUtil {
     }
 
     public long getExpirationTime() {
-        return 1 * 60000;// Set expiration to 1 minute (1 * 60,000 ms)
+        return 50 * 60000;// Set expiration to 1 minute (1 * 60,000 ms)
     }
 
     public String generateToken(CustomUser user) {
         Date now = new Date();
-        Date expirationDate = new Date(now.getTime() + getExpirationTime());  // Set expiration to 1 minute
+        Date expirationDate = new Date(now.getTime() + getExpirationTime());  // Set expiration to 50 minute
 
         return Jwts.builder()
                 .subject(user.getUsername())
