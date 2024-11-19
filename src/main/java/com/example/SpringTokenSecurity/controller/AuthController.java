@@ -6,10 +6,8 @@ import com.example.SpringTokenSecurity.model.User;
 import com.example.SpringTokenSecurity.repository.UserRepository;
 import com.example.SpringTokenSecurity.utils.JwtTokenUtil;
 import com.example.SpringTokenSecurity.utils.ResponseUtil;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -20,8 +18,7 @@ import java.util.Optional;
 
 @RestController
 public class AuthController {
-    @Autowired
-    private AuthenticationManager authenticationManager;
+
     private final JwtTokenUtil jwtUtil;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
@@ -47,6 +44,4 @@ public class AuthController {
         return ResponseUtil.createSuccessResponse(APIConstant.USER_REGISTERED_SUCCESSFULLY, HttpStatus.CREATED);
     }
 }
-
-
 

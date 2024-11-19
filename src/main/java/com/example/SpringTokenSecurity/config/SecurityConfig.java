@@ -10,8 +10,10 @@ import com.example.SpringTokenSecurity.utils.ResponseUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -24,6 +26,7 @@ import org.springframework.security.web.authentication.switchuser.SwitchUserFilt
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity(prePostEnabled = true, securedEnabled = true) // Enable method security
 public class SecurityConfig {
 
     @Autowired
@@ -57,17 +60,19 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> {
                             try {
                                 auth
-                                        .requestMatchers("/login", "/register", "/logout").permitAll()       // Publicly accessible paths
-                                        .requestMatchers("/api/**").permitAll()
-                                        .requestMatchers("/api/switchUser", "/api/exitSwitchUser").hasRole("ADMIN") // Restrict access to switching endpoints
-                                        .anyRequest().authenticated();
+                                        .requestMatchers("/login", "/register", "/logout").permitAll() // Public endpoints
+                                        .requestMatchers("/api/v1/access/**").authenticated() // Protected API
+                                        .requestMatchers("/api/switchUser", "/api/exitSwitchUser").hasRole("ADMIN") // Admin-specific routes
+                                        .requestMatchers("/api/**").hasRole("Normal")
+                                        .requestMatchers(HttpMethod.GET, "/api/**").hasAuthority("read") // Read access authority
+                                        .anyRequest().authenticated(); // Require authentication for all other requests
                             } catch (Exception e) {
                                 e.printStackTrace();
                             }
                         }
                 )
                 .sessionManagement(sess -> sess
-                        .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED) // Stateless session management
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS) // Stateless session management
                 )
                 .logout(logout -> logout
                         .logoutUrl("/logout")
@@ -80,6 +85,8 @@ public class SecurityConfig {
                         .key("uniqueAndSecret") // Set a unique key for remember-me
                         .tokenValiditySeconds(86400)// Set the token validity period (1 day)
                 )
+                .exceptionHandling(exception -> exception
+                        .accessDeniedHandler(customAccessDeniedHandler)) // Set custom AccessDeniedHandler
                 .addFilter(jwtAuthenticationFilter)// Add JWT authentication filter
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)// Validate JWT for all requests
                 .addFilterAfter(switchUserFilter(), SwitchUserFilter.class); // Add SwitchUserFilter

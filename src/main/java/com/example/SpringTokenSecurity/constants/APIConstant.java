@@ -15,6 +15,7 @@ public class APIConstant {
     public static final String INVALID_TOKEN = "Invalid token";
     public static final String INVALID_TOKEN_FORMAT = "Invalid token format";
     public static final String LOGOUT_SUCCESS_MASSAGE = "Logged out successfully!";
+    public static final String ACCESS_DENIED_MASSAGE = "Access Denied: You do not have permission to access this resource.";
     // Other Constants
     public static final String BEARER_PREFIX = "Bearer ";
 

@@ -10,12 +10,31 @@ import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
 import java.security.NoSuchAlgorithmException;
+import java.util.Collections;
 import java.util.Date;
+import java.util.List;
 import java.util.function.Function;
 
 @Component
 public class JwtTokenUtil {
     private final SecretKey key;
+    // Key for roles in the JWT claims
+    private static final String CLAIM_KEY_ROLES = "role";
+
+    public List<String> extractRoles(String token) {
+        Claims claims = extractAllClaims(token);
+        // Extract roles from the claim or return an empty list if not found
+        Object rolesClaim = claims.get(CLAIM_KEY_ROLES);
+        if (rolesClaim instanceof List) {
+            return (List<String>) rolesClaim;
+        }
+        // If rolesClaim is a string (e.g., single role), wrap it into a list
+        if (rolesClaim instanceof String) {
+            return Collections.singletonList((String) rolesClaim);
+        }
+        return Collections.emptyList();  // Default to empty if roles are not present
+    }
+
 
     public JwtTokenUtil() throws NoSuchAlgorithmException {
         this.key = KeyGeneratorUtil.generateKey(); // Generate a new key for HMAC-SHA256

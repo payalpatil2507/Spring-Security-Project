@@ -11,6 +11,7 @@ import org.springframework.security.authentication.AccountStatusException;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.InsufficientAuthenticationException;
+import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -29,7 +30,9 @@ public class GlobalExceptionHandler {
         if (exception instanceof AccountStatusException) {
             return ResponseUtil.createErrorResponse("Your account is currently locked or inactive. Please contact support.", HttpStatus.FORBIDDEN);
         }
-
+        if (exception instanceof AuthorizationDeniedException) {
+            return ResponseUtil.createErrorResponse("You do not have permission to access this method.", HttpStatus.FORBIDDEN);
+        }
         if (exception instanceof AccessDeniedException) {
             return ResponseUtil.createErrorResponse("You do not have permission to access this resource.", HttpStatus.FORBIDDEN);
         }
