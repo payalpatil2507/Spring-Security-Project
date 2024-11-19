@@ -60,10 +60,10 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> {
                             try {
                                 auth
-                                        .requestMatchers("/login", "/register", "/logout").permitAll() // Public endpoints
-                                        .requestMatchers("/api/v1/access/**").authenticated() // Protected API
+                                        .requestMatchers("/login", "/register", "/logout").permitAll()
+                                        .requestMatchers("/api/**").permitAll()// Public endpoints
                                         .requestMatchers("/api/switchUser", "/api/exitSwitchUser").hasRole("ADMIN") // Admin-specific routes
-                                        .requestMatchers("/api/**").hasRole("Normal")
+                                        .requestMatchers("/api/v1/access/**").authenticated() // Protected API
                                         .requestMatchers(HttpMethod.GET, "/api/**").hasAuthority("read") // Read access authority
                                         .anyRequest().authenticated(); // Require authentication for all other requests
                             } catch (Exception e) {
